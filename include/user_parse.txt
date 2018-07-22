@@ -1,0 +1,29 @@
+///*
+// * user_parse.h
+// *
+// *  Created on: 2018Äê6ÔÂ15ÈÕ
+// *      Author: hxhoua
+// */
+//
+//#ifndef INCLUDE_USER_PARSE_TXT_
+//#define INCLUDE_USER_PARSE_TXT_
+//
+//#define DATA_PAIR_SIZE 5;
+//#include "json/cJSON.h"
+//
+//typedef struct {
+//	char *value;
+//} Datapoints;
+//
+//typedef struct {
+//	Datapoints datapoints[1];
+//	char *id;
+//} DataPair;
+//
+//typedef struct {
+//	DataPair pair[2];
+//} Datastreams;
+//
+//cJSON *struct_to_json(void *paramter);
+//
+//#endif /* INCLUDE_USER_PARSE_TXT_ */

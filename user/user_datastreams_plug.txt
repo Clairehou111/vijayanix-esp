@@ -1,0 +1,140 @@
+/*
+
+ * 
+ *
+ *  Created on: 2018Äê6ÔÂ15ÈÕ
+ *      Author: hxhoua
+ 
+
+#include "esp_common.h"
+#include "user_parse.h"
+#include "user_cgi.h"
+#include "user_device_data_broadcast.h"
+#include "user_datastreams.h"
+#include "user_plug2.h"
+#include "mqtt/MQTTClient.h"
+#include "bitwise_ops.h"
+
+typedef struct {
+	uint8 status1;
+	uint8 status2;
+} PlugDataPoints;
+
+LOCAL void status_to_device_attrs(PlugDataPoints *plugData, uint16 status) {
+	plugData->status1 = getbit(status, 0);
+	plugData->status2 = getbit(status, 1);
+}
+
+LOCAL void create_datapoints(Datapoints *points, char *value) {
+	points->value = malloc(sizeof(char) * (strlen(value) + 1));
+	strcpy(points->value, value);
+}
+
+LOCAL void create_data_pair(DataPair *pair, char *key, char *value) {
+	pair->id = malloc(sizeof(char) * (strlen(key) + 1));
+	strcpy(pair->id, key);
+	size_t indexPoints = 0, sizePoints = DATA_POINTS_NUM;
+	while (indexPoints < sizePoints) {
+		Datapoints *points = malloc(sizeof(Datapoints));
+		create_datapoints(points, value);
+		pair->datapoints[indexPoints++] = *points;
+		free(points);
+		points = NULL;
+	}
+}
+
+static void device_attr_to_stream_struct(Datastreams *streams,
+		PlugDataPoints *plugData) {
+
+	uint8 status1 = plugData->status1;
+	uint8 status2 = plugData->status2;
+
+	status1 = 0;
+	status2 = 1;
+
+	uint8 index = 0;
+
+	char *value1 = malloc(sizeof(char) * 10), *value2 = malloc(
+			sizeof(char) * 2);
+	sprintf(value1, "%hu", status1);
+	sprintf(value2, "%hu", status2);
+
+	DataPair *pair1 = malloc(sizeof(DataPair));
+	DataPair *pair2 = malloc(sizeof(DataPair));
+
+	char *id1 = "status1", *id2 = "status2";
+
+	create_data_pair(pair1, id1, value1);
+	create_data_pair(pair2, id2, value2);
+
+	streams->pair[index++] = *pair1;
+	streams->pair[index++] = *pair2;
+
+	free(pair1);
+	pair1 = NULL;
+	free(pair2);
+	pair2 = NULL;
+}
+
+LOCAL void plug_status_to_json(uint16 status) {
+
+	PlugDataPoints plugData;
+
+	status_to_device_attrs(&plugData, status);
+
+	Datastreams streams;
+
+	device_attr_to_stream_struct(&streams, &plugData);
+
+	cJSON * json1 = struct_to_json(&streams);
+
+}
+
+static char *get_device_datastreams11(void){
+
+ uint16 status= user_plug_get_status2();
+ cJSON * json1 = plug_status_to_json(status);
+ char *pSubJson_datastreams = cJSON_Print(pSubJson_datastreams);
+ return pSubJson_datastreams;
+ }
+
+*
+ * get datastreams,the format is applicable  for mqtt server
+ 
+char *get_device_datastreams(void) {
+
+	uint16 status = user_plug_get_status2();
+	uint8 status1 = getbit(status, 0);
+	uint8 status2 = getbit(status, 1);
+	char *json =
+			"{\"datastreams\":[{\"id\":\"status1\",\"datapoints\":[{\"value\":%d}]},{\"id\":\"status2\",\"datapoints\":[{\"value\":%d}]}]}";
+	char *t_json = zalloc(MESSAGE_SIZE);
+	sprintf(t_json, json, status1, status2);
+	return t_json;
+}
+
+*
+ * 1. operate device.
+ * 2. send a item to datastreams queue
+ * 3. send a item to broadcast  queue
+ 
+int operate_device(char *payload) {
+
+	int ret = switch_status_set2(payload);
+
+	if (ret != 0) {
+		printf("operation executed failed.\n%s\n", payload);
+		return -1;
+	}
+
+	char *json = get_device_datastreams();
+	send_datastreams_to_queue(json);
+
+	//broadcast in LAN
+	char *json2 = get_broadcast_streams();
+	send_broadcast_data_to_queue(json2);
+	return ret;
+
+}
+
+*/

@@ -1,0 +1,75 @@
+/*
+
+ * user_parse.c
+ *
+ *  Created on: 2018年6月13日
+ *      Author: hxhoua
+ 
+#include "esp_common.h"
+#include "user_parse.h"
+
+#include "user_plug2.h"
+
+
+
+
+cJSON *struct_to_json(void *paramter) {
+
+	Datastreams *streams = paramter;
+
+	cJSON * pSubJson_datastreams = cJSON_CreateObject();
+	if (NULL == pSubJson_datastreams) {
+		printf("pSubJson_response creat fail\n");
+		return NULL;
+	}
+
+	cJSON *josn_pair, *json_pairAraray;
+
+	size_t size = PLUG_NUM, sizePoints = DATA_POINTS_NUM;
+
+	json_pairAraray = cJSON_CreateArray(); 创建数组
+
+	for (int i = 0; i < size; i++) { //datapair
+
+		cJSON *josn_datapoints, *josn_datapointsArray;
+		DataPair pair = streams->pair[i];
+
+		cJSON_AddItemToArray(json_pairAraray, josn_pair = cJSON_CreateObject());  给创建的数组增加对对象
+
+		cJSON_AddStringToObject(josn_pair, "id", pair.id);
+		cJSON_AddItemToObject(josn_pair, "datapoints", josn_datapointsArray = cJSON_CreateArray());
+
+		for (int j = 0; j < sizePoints; j++) {  //datapoints
+
+			Datapoints points = pair.datapoints[j];
+			创建数组
+			cJSON_AddItemToArray(josn_datapointsArray, josn_datapoints =
+					cJSON_CreateObject());  给创建的数组增加对对象
+
+			char *value = (char *) malloc(sizeof(char)*(strlen(points.value)+1));
+			printf("strlen(points.value) = %d",strlen(points.value));
+			strcpy(value,points.value);
+			printf("points.value=%s\n",value);
+			cJSON_AddStringToObject(josn_datapoints, "value", value);
+			cJSON_AddStringToObject(josn_datapoints, "value", points.value);
+
+			free(points.value);
+
+		} //datapoints
+
+		free(pair.id);
+
+	} //datapair
+
+	cJSON_AddItemToObject(pSubJson_datastreams, "datastreams", json_pairAraray);
+
+	char *pchar = cJSON_Print(pSubJson_datastreams);
+
+	printf("%s\n",pchar);
+
+	return pSubJson_datastreams;
+
+}
+
+
+*/
